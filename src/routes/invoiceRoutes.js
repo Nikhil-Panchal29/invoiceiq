@@ -1,14 +1,15 @@
-const express = require("express");
+const express = require('express');
 
 const {
   uploadInvoice,
+  processInvoice,
   getInvoices,
   getInvoice,
   updateInvoiceStatus,
-} = require("../controllers/invoiceController");
+} = require('../controllers/invoiceController');
 
-const { protect } = require("../middleware/authMiddleware");
-const upload = require("../middleware/upload");
+const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -22,16 +23,19 @@ router.use(protect);
 // Invoice Routes
 // ==========================================
 
-// Upload Invoice
-router.post("/upload", upload.single("invoice"), uploadInvoice);
+// Upload invoice — triggers OCR pipeline automatically
+router.post('/upload', upload.single('invoice'), uploadInvoice);
 
-// Get All Invoices
-router.get("/", getInvoices);
+// Manually re-trigger OCR + AI pipeline on existing invoice
+router.post('/:id/process', processInvoice);
 
-// Get Single Invoice
-router.get("/:id", getInvoice);
+// Get all invoices for current user
+router.get('/', getInvoices);
 
-// Update Invoice Status
-router.patch("/:id/status", updateInvoiceStatus);
+// Get single invoice
+router.get('/:id', getInvoice);
+
+// Update invoice status
+router.patch('/:id/status', updateInvoiceStatus);
 
 module.exports = router;
