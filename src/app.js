@@ -16,6 +16,8 @@ const errorHandler = require("./middleware/errorHandler");
 
 const authRoutes = require("./routes/authRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
+const assistantRoutes = require("./routes/assistantRoutes");
+const reminderRoutes = require("./routes/reminderRoutes");
 
 const app = express();
 
@@ -68,6 +70,8 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/assistant", assistantRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 // ==========================================
 // 404 Handler

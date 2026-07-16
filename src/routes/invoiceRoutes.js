@@ -6,6 +6,10 @@ const {
   getInvoices,
   getInvoice,
   updateInvoiceStatus,
+  updateInvoice,
+  deleteInvoice,
+  downloadInvoiceFile,
+  serveInvoiceFile,
 } = require('../controllers/invoiceController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -37,5 +41,17 @@ router.get('/:id', getInvoice);
 
 // Update invoice status
 router.patch('/:id/status', updateInvoiceStatus);
+
+// Update invoice details
+router.put('/:id', updateInvoice);
+
+// Delete invoice
+router.delete('/:id', deleteInvoice);
+
+// Download invoice file
+router.get('/:id/download', downloadInvoiceFile);
+
+// Serve invoice file for preview
+router.get('/:id/file', serveInvoiceFile);
 
 module.exports = router;

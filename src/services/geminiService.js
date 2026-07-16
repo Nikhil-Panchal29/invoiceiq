@@ -1,4 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fs = require('fs');
+const path = require('path');
 
 // ==========================================
 // Initialise Gemini client
@@ -14,7 +16,7 @@ const getGeminiClient = () => {
     generationConfig: {
       responseMimeType: 'application/json',
       temperature: 0.1,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 8192,
     },
   });
 };
@@ -25,63 +27,71 @@ const getGeminiClient = () => {
 // ==========================================
 
 const buildPrompt = (ocrText) => {
-  return `You are an expert invoice analysis AI. Analyse the invoice text below and return ONLY a single valid JSON object. No markdown. No code fences. No explanation. Only raw JSON.
+  return `Analyse invoice text. Return ONLY valid JSON. No markdown. No explanation.
 
-The JSON must follow this exact structure:
-
+JSON structure:
 {
   "extraction": {
-    "vendorName": "string or empty string",
-    "invoiceNumber": "string or empty string",
+    "vendorName": "string",
+    "invoiceNumber": "string",
     "invoiceDate": "YYYY-MM-DD or null",
     "dueDate": "YYYY-MM-DD or null",
-    "totalAmount": number or 0,
-    "subtotal": number or 0,
-    "taxAmount": number or 0,
-    "currency": "INR or USD or EUR or GBP or other",
-    "gstNumber": "string or empty string",
-    "invoiceType": "Tax Invoice or Proforma Invoice or Credit Note or Receipt or Other",
-    "paymentTerms": "string or empty string",
-    "lineItems": [
-      {
-        "description": "string",
-        "quantity": number,
-        "unitPrice": number,
-        "total": number
-      }
-    ]
+    "totalAmount": number,
+    "subtotal": number,
+    "taxAmount": number,
+    "currency": "INR/USD/EUR/GBP",
+    "gstNumber": "string",
+    "invoiceType": "Tax Invoice/Proforma/Credit Note/Receipt/Other",
+    "paymentTerms": "string",
+    "lineItems": [{"description": "string", "quantity": number, "unitPrice": number, "total": number}]
   },
   "categorization": {
-    "category": "one of: Office Supplies, Food, Travel, Marketing, Software, Utilities, Hardware, Education, Medical, Professional Services, Insurance, Salary, Rent, Miscellaneous",
-    "categoryConfidence": number between 0 and 100,
-    "categoryReason": "one sentence explaining why this category was chosen"
+    "category": "Office Supplies/Food/Travel/Marketing/Software/Utilities/Hardware/Education/Medical/Professional Services/Insurance/Salary/Rent/Miscellaneous",
+    "categoryConfidence": 0-100,
+    "categoryReason": "one sentence"
   },
-  "summary": "one professional sentence summarising the invoice — include vendor name, amount, purpose and due date if available",
+  "summary": "one sentence summary",
   "validation": {
-    "warnings": ["array of warning strings — include one entry per issue found"],
-    "validationScore": number between 0 and 100
+    "warnings": ["array of warning strings"],
+    "validationScore": 0-100
   },
   "risk": {
-    "riskScore": number between 0 and 100,
-    "riskLevel": "Low or Medium or High",
-    "riskReason": "one sentence explaining the risk assessment"
+    "riskScore": 0-100,
+    "riskLevel": "Low/Medium/High",
+    "riskReason": "one sentence"
   },
-  "recommendations": ["array of practical action strings for the accounts team"]
+  "recommendations": ["array of action strings"]
 }
 
-Rules:
-- validationScore 100 means a perfect invoice with all fields present.
-- Deduct points for every missing or suspicious field.
-- riskScore above 70 means High, 40-70 means Medium, below 40 means Low.
-- If a field is genuinely not present in the invoice, use an empty string or 0 or null as appropriate — never invent data.
-- Always return all top-level keys even if their values are empty defaults.
-- warnings must be an array. If no warnings, return an empty array.
-- recommendations must be an array. Always include at least one recommendation.
+Rules: 100=perfect invoice. Deduct for missing fields. Risk: >70=High, 40-70=Medium, <40=Low. Use empty string/0/null for missing data. Always return all keys. warnings/recommendations must be arrays.
 
-Invoice text to analyse:
+Invoice text:
 ---
 ${ocrText}
 ---`;
+};
+
+// ==========================================
+// Check if response is truncated
+// ==========================================
+
+const isResponseTruncated = (rawText) => {
+  const trimmed = rawText.trim();
+  // Valid JSON should end with } or ]
+  return !trimmed.endsWith('}') && !trimmed.endsWith(']');
+};
+
+// ==========================================
+// Save failed response to log file
+// ==========================================
+
+const saveFailedResponse = (attempt, rawText) => {
+  const logsDir = path.join(__dirname, '../../logs');
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+  const logFile = path.join(logsDir, `gemini-attempt${attempt}.txt`);
+  fs.writeFileSync(logFile, rawText, 'utf8');
 };
 
 // ==========================================
@@ -154,7 +164,7 @@ const normaliseResponse = (parsed) => {
 };
 
 // ==========================================
-// Main Gemini Service — single API call
+// Main Gemini Service — with retry logic
 // ==========================================
 
 const analyseInvoice = async (ocrText) => {
@@ -165,46 +175,67 @@ const analyseInvoice = async (ocrText) => {
   const model = getGeminiClient();
   const prompt = buildPrompt(ocrText);
 
-  let rawText;
+  const delays = [1000, 2000, 4000]; // 1s, 2s, 4s
+  let lastError = null;
 
-  // ── First attempt ──────────────────────────
-  try {
-    const result = await model.generateContent(prompt);
-    rawText = result.response.text();
-    console.log("\n========== GEMINI RAW RESPONSE ==========");
-    console.log(rawText);
-    console.log("=========================================\n");
-  } catch (err) {
-    if (err.status === 401 || err.message?.includes('API_KEY')) {
-      throw new Error('Invalid Gemini API key. Check GEMINI_API_KEY in .env');
-    }
-    if (err.status === 429) {
-      throw new Error('Gemini rate limit exceeded. Please wait and retry.');
-    }
-    if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
-      throw new Error('Gemini network timeout. Check your internet connection.');
-    }
-    throw new Error(`Gemini API error: ${err.message}`);
-  }
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    let rawText;
+    let truncated = false;
+    let parseSuccess = false;
 
-  // ── Parse with one retry on malformed JSON ──
-  let parsed;
-  try {
-    parsed = parseGeminiResponse(rawText);
-  } catch (parseErr) {
-    // Retry once
     try {
-      const retryResult = await model.generateContent(prompt);
-      const retryText = retryResult.response.text();
-      parsed = parseGeminiResponse(retryText);
-    } catch (retryErr) {
-      throw new Error(
-        `Gemini returned invalid JSON after retry. Parse error: ${parseErr.message}`
-      );
+      const result = await model.generateContent(prompt);
+      rawText = result.response.text();
+
+      console.log(`\n========== GEMINI ATTEMPT ${attempt} ==========`);
+      console.log(`Response length: ${rawText.length} characters`);
+      
+      truncated = isResponseTruncated(rawText);
+      console.log(`Truncated: ${truncated}`);
+
+      if (truncated) {
+        saveFailedResponse(attempt, rawText);
+        console.log(`Saved failed response to logs/gemini-attempt${attempt}.txt`);
+        lastError = new Error(`Response truncated on attempt ${attempt}`);
+        if (attempt < 3) {
+          console.log(`Retrying in ${delays[attempt - 1] / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delays[attempt - 1]));
+          continue;
+        }
+      }
+
+      parsed = parseGeminiResponse(rawText);
+      parseSuccess = true;
+      console.log(`Parsing: SUCCESS`);
+      console.log("=========================================\n");
+
+      return normaliseResponse(parsed);
+
+    } catch (err) {
+      if (err.status === 401 || err.message?.includes('API_KEY')) {
+        throw new Error('Invalid Gemini API key. Check GEMINI_API_KEY in .env');
+      }
+      if (err.status === 429) {
+        throw new Error('Gemini rate limit exceeded. Please wait and retry.');
+      }
+      if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
+        throw new Error('Gemini network timeout. Check your internet connection.');
+      }
+
+      saveFailedResponse(attempt, rawText || err.message);
+      console.log(`Parsing: FAILED - ${err.message}`);
+      console.log(`Saved failed response to logs/gemini-attempt${attempt}.txt`);
+      
+      lastError = err;
+      if (attempt < 3) {
+        console.log(`Retrying in ${delays[attempt - 1] / 1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, delays[attempt - 1]));
+      }
     }
   }
 
-  return normaliseResponse(parsed);
+  console.log("=========================================\n");
+  throw new Error('AI extraction failed. Please try again.');
 };
 
 module.exports = { analyseInvoice };

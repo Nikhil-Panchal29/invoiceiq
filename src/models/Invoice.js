@@ -73,14 +73,15 @@ const invoiceSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "pending",
+        "uploaded",
+        "processing",
         "extracted",
         "reviewed",
-        "sent",
+        "approved",
         "paid",
         "overdue",
       ],
-      default: "pending",
+      default: "uploaded",
     },
 
     ocrRawText: {
@@ -92,6 +93,14 @@ const invoiceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+
+    recipientEmail: {
+      type: String,
+      default: "",
+      trim: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
 
     // ==========================================
@@ -195,6 +204,13 @@ const invoiceSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Invoice",
         default: null,
+      },
+
+      duplicateScore: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100,
       },
 
       // ======================================
