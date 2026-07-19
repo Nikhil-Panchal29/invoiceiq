@@ -18,10 +18,10 @@ export const NavLink: React.FC<NavLinkProps> = ({ href, icon, label, isActive, o
       'flex items-center px-3 py-2 text-sm font-medium transition-all duration-150 rounded-md relative group',
       isActive
         ? 'text-white bg-[#321E48]'
-        : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+        : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
     )}
   >
-    <span className={cn('mr-2', isActive ? 'text-[#78A4CB]' : 'text-[#43637E] group-hover:text-[#78A4CB]')}>
+    <span className={cn('mr-2', isActive ? 'text-[#78A4CB]' : 'text-[#43637E] group-hover:text-[#1E4F8C]')}>
       {icon}
     </span>
     {label}

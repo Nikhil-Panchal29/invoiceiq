@@ -111,7 +111,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-white to-[#EAE0CF]/30 rounded-xl shadow-lg border border-[#EFEABB] py-2 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#EFEABB] py-2 z-50">
                   <Link
                     to="#"
                     className="flex items-center px-4 py-2 text-sm text-[#17433F] hover:bg-[#EAE0CF]"
@@ -169,7 +169,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     activeTab === 'dashboard'
                       ? 'text-white bg-[#321E48]'
-                      : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+                      : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
                   }`}
                 >
                   <LayoutDashboard size={18} className="mr-2" />
@@ -181,7 +181,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     activeTab === 'invoices'
                       ? 'text-white bg-[#321E48]'
-                      : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+                      : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
                   }`}
                 >
                   <FileText size={18} className="mr-2" />
@@ -195,7 +195,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   className={`flex items-center w-full px-3 py-2 text-sm font-medium rounded-md ${
                     activeTab === 'upload'
                       ? 'text-white bg-[#321E48]'
-                      : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+                      : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
                   }`}
                 >
                   <Upload size={18} className="mr-2" />
@@ -207,7 +207,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     activeTab === 'analytics'
                       ? 'text-white bg-[#321E48]'
-                      : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+                      : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
                   }`}
                 >
                   <BarChart3 size={18} className="mr-2" />
@@ -219,7 +219,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     activeTab === 'assistant'
                       ? 'text-white bg-[#321E48]'
-                      : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+                      : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
                   }`}
                 >
                   <Bot size={18} className="mr-2" />
@@ -231,7 +231,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     activeTab === 'reminders'
                       ? 'text-white bg-[#321E48]'
-                      : 'text-[#43637E] hover:text-[#78A4CB] hover:bg-[#EAE0CF]'
+                      : 'text-[#43637E] hover:text-[#1E4F8C] hover:bg-[#EAE0CF]'
                   }`}
                 >
                   <Mail size={18} className="mr-2" />

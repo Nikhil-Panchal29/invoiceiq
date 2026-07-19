@@ -273,7 +273,7 @@ export const InvoiceDetailsPage = () => {
               <button
                 onClick={handleOpenReminderModal}
                 disabled={isSendingReminder}
-                className="px-4 py-2 border border-[#78A4CB]/20 text-[#78A4CB] rounded-lg hover:bg-[#EAE0CF] transition-colors font-medium text-sm flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-[#78A4CB]/20 text-[#1E4F8C] rounded-lg hover:bg-[#EAE0CF] transition-colors font-medium text-sm flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Mail size={16} />
                 <span>{isSendingReminder ? 'Sending...' : 'Send Reminder'}</span>
