@@ -215,7 +215,13 @@ const processInvoice = asyncHandler(async (req, res, next) => {
 
   // OCR
   const mimetype = invoice.fileType === 'pdf' ? 'application/pdf' : 'image/jpeg';
-  const ocrResult = await extractTextFromFile(invoice.fileUrl, mimetype);
+  let filePath;
+  if (path.isAbsolute(invoice.fileUrl)) {
+    filePath = invoice.fileUrl;
+  } else {
+    filePath = path.join(__dirname, '../../', invoice.fileUrl);
+  }
+  const ocrResult = await extractTextFromFile(filePath, mimetype);
 
   if (!ocrResult.success || ocrResult.rawText.trim().length === 0) {
     return next(new ErrorResponse('OCR could not extract text from this file', 422));
@@ -400,7 +406,12 @@ const deleteInvoice = asyncHandler(async (req, res, next) => {
   // Delete uploaded file
   if (invoice.fileUrl) {
     try {
-      const filePath = path.join(__dirname, '../../', invoice.fileUrl);
+      let filePath;
+      if (path.isAbsolute(invoice.fileUrl)) {
+        filePath = invoice.fileUrl;
+      } else {
+        filePath = path.join(__dirname, '../../', invoice.fileUrl);
+      }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -433,7 +444,12 @@ const downloadInvoiceFile = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Invoice file not found', 404));
   }
 
-  const filePath = path.join(__dirname, '../../', invoice.fileUrl);
+  let filePath;
+  if (path.isAbsolute(invoice.fileUrl)) {
+    filePath = invoice.fileUrl;
+  } else {
+    filePath = path.join(__dirname, '../../', invoice.fileUrl);
+  }
 
   if (!fs.existsSync(filePath)) {
     return next(new ErrorResponse('File not found on server', 404));
@@ -447,27 +463,46 @@ const downloadInvoiceFile = asyncHandler(async (req, res, next) => {
 // ==========================================
 
 const serveInvoiceFile = asyncHandler(async (req, res, next) => {
+  console.log('[serveInvoiceFile] Request received for invoice ID:', req.params.id);
+
   const invoice = await Invoice.findById(req.params.id);
 
   if (!invoice) {
+    console.log('[serveInvoiceFile] Invoice not found in MongoDB');
     return next(new ErrorResponse('Invoice not found', 404));
   }
 
+  console.log('[serveInvoiceFile] Invoice found. fileUrl:', invoice.fileUrl);
+
   // Verify invoice belongs to logged-in user
   if (invoice.userId.toString() !== req.user.id.toString()) {
+    console.log('[serveInvoiceFile] User not authorized');
     return next(new ErrorResponse('Not authorized to access this invoice', 403));
   }
 
   if (!invoice.fileUrl) {
+    console.log('[serveInvoiceFile] No fileUrl on invoice');
     return next(new ErrorResponse('Invoice file not found', 404));
   }
 
-  const filePath = path.join(__dirname, '../../', invoice.fileUrl);
+  // If fileUrl is an absolute path, use it directly
+  // If it's a relative path, construct from backend root
+  let filePath;
+  if (path.isAbsolute(invoice.fileUrl)) {
+    filePath = invoice.fileUrl;
+  } else {
+    filePath = path.join(__dirname, '../../', invoice.fileUrl);
+  }
+  
+  console.log('[serveInvoiceFile] Constructed file path:', filePath);
+  console.log('[serveInvoiceFile] File exists:', fs.existsSync(filePath));
 
   if (!fs.existsSync(filePath)) {
+    console.log('[serveInvoiceFile] File not found on disk');
     return next(new ErrorResponse('File not found on server', 404));
   }
 
+  console.log('[serveInvoiceFile] Sending file...');
   // Let Express auto-detect Content-Type based on file extension
   res.sendFile(filePath);
 });

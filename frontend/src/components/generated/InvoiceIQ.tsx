@@ -524,6 +524,18 @@ export const InvoiceIQ = () => {
   const [isToastLeaving, setIsToastLeaving] = useState(false);
   const [tabTransitioning, setTabTransitioning] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
   const [tabIndicator, setTabIndicator] = useState<TabButtonRect>({
     left: 0,
     width: 0
@@ -624,6 +636,11 @@ export const InvoiceIQ = () => {
     const loadingTimer = window.setTimeout(() => setIsLoading(false), 800);
     return () => window.clearTimeout(loadingTimer);
   }, []);
+
+  // Reset mobile menu state when authentication changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [isAuthenticated]);
   useEffect(() => {
     if (isLoading) return undefined;
     const hash = window.location.hash.replace('#', '');
@@ -683,6 +700,7 @@ export const InvoiceIQ = () => {
       cleanups.push(() => {
         element.removeEventListener('mousemove', handleMove);
         element.removeEventListener('mouseleave', handleLeave);
+        element.style.transform = 'translate3d(0, 0, 0)';
       });
     });
     rippleElements.forEach(element => {
@@ -872,7 +890,8 @@ export const InvoiceIQ = () => {
       </div>
 
       <nav className={`fixed top-0 w-full z-50 ${isScrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between relative">
+        <div className="w-full max-w-7xl md:max-w-[95%] lg:max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center">
           <Link to={ROUTES.HOME} onClick={closeMobileMenu} className="flex items-center gap-2 text-[#1E293B] nav-logo-enter">
             <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-[#1E293B] text-[#BA5A5A] logo-orb">
               <Zap size={18} fill="currentColor" />
@@ -904,32 +923,40 @@ export const InvoiceIQ = () => {
                 </button>
               </>}
           </div>
-          {mobileMenuOpen && <div className="md:hidden absolute top-full left-0 right-0 mt-3 mx-0 glass-nav border border-[#BA5A5A]/10 rounded-2xl px-6 py-6 shadow-lg">
-              <div className="flex flex-col gap-4">
-                {NAV_LINKS.map(link => <button key={`mobile-${link.id}`} type="button" onClick={() => handleNavLink(link.id)} className="premium-nav-link text-left text-sm font-medium text-[#475569] hover:text-[#BA5A5A] transition-colors relative py-1">
-                    <span>{link.label}</span>
-                  </button>)}
-                <div className="border-t border-[#BA5A5A]/10 pt-4 flex flex-col gap-3">
+        </div>
+        {mobileMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <div className="md:hidden border-t border-[#BA5A5A]/10 bg-white relative z-50">
+                <div className="px-4 py-3 space-y-1">
+                  {NAV_LINKS.map(link => <button key={`mobile-${link.id}`} type="button" onClick={() => handleNavLink(link.id)} className="flex items-center w-full px-3 py-2 text-sm font-medium text-[#475569] hover:text-[#BA5A5A] hover:bg-[#EAE0CF] rounded-md transition-colors relative">
+                      <span>{link.label}</span>
+                    </button>)}
+                  <div className="border-t border-[#BA5A5A]/10 my-2"></div>
                   {isAuthenticated ? <>
-                      <button type="button" onClick={handleDashboard} className="premium-nav-link text-left text-sm font-medium text-[#1E293B] hover:text-[#BA5A5A] transition-colors relative py-1">
+                      <button type="button" onClick={handleDashboard} className="flex items-center w-full px-3 py-2 text-sm font-medium text-[#1E293B] hover:text-[#BA5A5A] hover:bg-[#EAE0CF] rounded-md transition-colors relative">
                         <span>Dashboard</span>
                       </button>
-                      <button type="button" onClick={handleLogout} data-ripple="true" className="premium-button bg-[#BA5A5A] hover:bg-[#a04b4b] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_4px_14px_0_rgba(186,90,90,0.39)] w-full">
+                      <button type="button" onClick={handleLogout} className="flex items-center w-full px-3 py-2 text-sm font-medium text-[#4B1426] hover:bg-[#EFEABB]/50 rounded-md transition-colors relative">
                         <span>Logout</span>
                       </button>
                     </> : <>
-                      <button type="button" onClick={handleLogin} className="premium-nav-link text-left text-sm font-medium text-[#1E293B] hover:text-[#BA5A5A] transition-colors relative py-1">
+                      <button type="button" onClick={handleLogin} className="flex items-center w-full px-3 py-2 text-sm font-medium text-[#1E293B] hover:text-[#BA5A5A] hover:bg-[#EAE0CF] rounded-md transition-colors relative">
                         <span>Sign in</span>
                       </button>
-                      <button type="button" onClick={handleRegister} data-ripple="true" className="premium-button bg-[#BA5A5A] hover:bg-[#a04b4b] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_4px_14px_0_rgba(186,90,90,0.39)] w-full">
+                      <button type="button" onClick={handleRegister} className="flex items-center w-full px-3 py-2 text-sm font-medium text-[#1E293B] hover:text-[#BA5A5A] hover:bg-[#EAE0CF] rounded-md transition-colors relative">
                         <span>Start free trial</span>
                       </button>
                     </>}
                 </div>
               </div>
-            </div>}
-        </div>
-      </nav>
+            </>
+          )}
+      </div>
+    </nav>
 
       <main>
         <section className="relative pt-40 pb-20 overflow-hidden hero-grain">

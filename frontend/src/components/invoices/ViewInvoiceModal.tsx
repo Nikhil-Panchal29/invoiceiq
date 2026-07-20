@@ -57,6 +57,16 @@ export const ViewInvoiceModal: React.FC<ViewInvoiceModalProps> = ({
     };
   }, [isOpen, invoiceId]);
 
+  // Open PDF in new tab on mobile
+  useEffect(() => {
+    if (blobUrl && fileType === 'pdf') {
+      const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.open(blobUrl, '_blank');
+      }
+    }
+  }, [blobUrl, fileType]);
+
   if (!isOpen) return null;
 
   return (
