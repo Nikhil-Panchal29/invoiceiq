@@ -1,4 +1,4 @@
-# 🚀 InvoiceIQ – AI Powered Invoice Management System
+# 🚀 InvoiceIQ – AI-Powered Invoice Management Platform
 
 InvoiceIQ is a full-stack AI-powered invoice management platform that automates invoice processing, validation, duplicate detection, analytics, reminders, and AI-assisted invoice queries.
 
@@ -13,10 +13,10 @@ InvoiceIQ is a full-stack AI-powered invoice management platform that automates 
 - 📊 Dashboard & Analytics
 - 📈 Spending Analysis
 - 📧 Email Payment Reminders
-- 🔐 JWT Authentication
+- 🔐 JWT Authentication & Authorization
 - 👤 User Authentication
 - 📱 Fully Responsive UI
-- ☁️ Cloud Database (MongoDB Atlas)
+- ☁️ MongoDB Atlas Cloud Database
 
 ---
 
@@ -41,10 +41,11 @@ InvoiceIQ is a full-stack AI-powered invoice management platform that automates 
 - Multer
 - Nodemailer
 
-### AI
+### AI & OCR
 
 - Groq API
 - Google Gemini API
+- OCR Text Extraction
 
 ---
 
@@ -109,59 +110,44 @@ npm run dev
 
 ## Backend (.env)
 
-```
-PORT=
+```env
+PORT=5000
 
-MONGODB_URI=
+MONGODB_URI=your_mongodb_connection_string
 
-JWT_SECRET=
+JWT_SECRET=your_jwt_secret
 
-GROQ_API_KEY=
+GROQ_API_KEY=your_groq_api_key
 
-GEMINI_API_KEY=
+GEMINI_API_KEY=your_gemini_api_key
 
-EMAIL_USER=
+SMTP_HOST=smtp-relay.brevo.com
 
-EMAIL_PASS=
+SMTP_PORT=2525
+
+SMTP_USER=your_brevo_username
+
+SMTP_PASS=your_brevo_smtp_key
+
+SMTP_FROM=InvoiceIQ <your_email@example.com>
 ```
 
 ---
 
 ## Frontend (.env)
 
-```
-VITE_API_URL=
+```env
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ---
 
-# 📸 Screenshots
 
-(Add screenshots after deployment)
+## 🌐 Live Demo
 
-Dashboard
+**Website:** https://invoiceiq-five.vercel.app/
 
-Invoice Details
-
-Analytics
-
-AI Assistant
-
-Reminders
-
-Landing Page
-
----
-
-# 🌐 Live Demo
-
-Frontend
-
-(Add Vercel URL)
-
-Backend API
-
-(Add Render URL)
+**GitHub Repository:** https://github.com/Nikhil-Panchal29/invoiceiq
 
 ---
 
@@ -189,14 +175,12 @@ Backend API
 
 **Nikhil Panchal**
 
-GitHub
+GitHub: https://github.com/Nikhil-Panchal29
 
-https://github.com/Nikhil-Panchal29
-
-LinkedIn
-
-(Add your LinkedIn URL)
+LinkedIn: https://www.linkedin.com/in/nikhil-panchall2903/
 
 ---
 
-## ⭐ If you like this project, consider giving it a star.
+## ⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
